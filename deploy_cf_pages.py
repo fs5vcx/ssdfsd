@@ -1,5 +1,5 @@
 # deploy_cf_pages.py
-# 独立脚本：将 dist 目录部署到 Cloudflare Pages
+# 独立脚本：自动生成 dist/index.html 并部署到 Cloudflare Pages
 # 用法: python deploy_cf_pages.py
 # 环境变量:
 #   CLOUDFLARE_API_TOKEN   (或 CF_API_TOKEN)     — Cloudflare API Token
@@ -20,6 +20,69 @@ logger = logging.getLogger("cf-deploy")
 CLOUDFLARE_API_TOKEN = os.getenv("CLOUDFLARE_API_TOKEN") or os.getenv("CF_API_TOKEN", "")
 CLOUDFLARE_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID") or os.getenv("CF_ACCOUNT_ID", "")
 CLOUDFLARE_PROJECT_NAME = os.getenv("CLOUDFLARE_PROJECT_NAME") or os.getenv("CF_PROJECT_NAME", "allabin")
+
+DIST_DIR = Path("dist")
+
+
+def ensure_dist_dir() -> None:
+    """确保 dist 目录存在"""
+    DIST_DIR.mkdir(parents=True, exist_ok=True)
+    logger.info(f"dist 目录已就绪: {DIST_DIR.resolve()}")
+
+
+def generate_index_html() -> Path:
+    """在 dist 目录下生成一个简单的首页 index.html"""
+    html_content = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloudflare Pages - 部署成功</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .card h1 { font-size: 2rem; margin-bottom: 16px; }
+        .card p { font-size: 1.1rem; opacity: 0.85; line-height: 1.6; }
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 18px;
+            border-radius: 20px;
+            margin-top: 24px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🚀 部署成功</h1>
+        <p>此页面由 Cloudflare Pages 自动部署</p>
+        <span class="badge">Powered by Wrangler</span>
+    </div>
+</body>
+</html>"""
+    index_path = DIST_DIR / "index.html"
+    index_path.write_text(html_content, encoding="utf-8")
+    logger.info(f"index.html 已生成: {index_path.resolve()}")
+    return index_path
 
 
 def parse_cf_pages_domain(output: str) -> str | None:
@@ -80,6 +143,8 @@ def deploy_dist_with_cf_pages() -> str:
 
 def main():
     try:
+        ensure_dist_dir()
+        generate_index_html()
         domain = deploy_dist_with_cf_pages()
         print(f"部署成功: https://{domain}")
     except Exception as e:
