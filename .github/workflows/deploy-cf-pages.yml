@@ -1,0 +1,37 @@
+# .github/workflows/deploy-cf-pages.yml
+name: Deploy to Cloudflare Pages
+
+on:
+  workflow_dispatch:   # 仅手动触发，无 cron
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 部署到 Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+        run: python deploy_cf_pages.py
+
+      - name: 上传域名文件
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: domain
+          path: domain.txt
