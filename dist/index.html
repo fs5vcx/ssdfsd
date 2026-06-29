@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Single‑File Random Blog</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #fafafa; }
+    .box { padding: 12px; border: 1px solid #ccc; background: #fff; margin: 12px 0; }
+    h1, h2 { margin-bottom: 8px; }
+    .post-title { font-weight: bold; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+  <h1>Single‑File Random Blog System</h1>
+
+  <h2>Random Post</h2>
+  <div id="random-one" class="box"></div>
+
+  <h2>Random Three Posts</h2>
+  <div id="random-three" class="box"></div>
+
+  <script>
+    // ============================================
+    // All blog posts stored directly in this file
+    // ============================================
+    const posts = [
+      {
+        title: "Post 1: Hello World",
+        content: "This is the first example post. You can write any HTML here."
+      },
+      {
+        title: "Post 2: Thoughts on Hacking",
+        content: "Tinkering is the romance of programmers."
+      },
+      {
+        title: "Post 3: Database Notes",
+        content: "Database optimization is an endless rabbit hole."
+      },
+      {
+        title: "Post 4: Static Blogs Are Powerful",
+        content: "Even a pure HTML blog can be elegant and fast."
+      }
+    ];
+    // Pick a random post
+    function pickRandom() {
+      return posts[Math.floor(Math.random() * posts.length)];
+    }
+    // Render a single random post
+    const one = pickRandom();
+    document.getElementById("random-one").innerHTML = `
+      <div class="post-title">${one.title}</div>
+      <div>${one.content}</div>
+    `;
+    // Render three random posts
+    let html = "";
+    for (let i = 0; i < 3; i++) {
+      const p = pickRandom();
+      html += `
+        <div style="margin-bottom:10px;">
+          <div class="post-title">${p.title}</div>
+          <div>${p.content}</div>
+        </div>
+      `;
+    }
+    document.getElementById("random-three").innerHTML = html;
+  </script>
+
+</body>
+</html>
