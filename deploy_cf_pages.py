@@ -116,7 +116,7 @@ def deploy_dist_with_cf_pages() -> str:
         env["CLOUDFLARE_ACCOUNT_ID"] = CLOUDFLARE_ACCOUNT_ID
 
     cmd = [
-        "npx", "wrangler", "pages", "deploy", "dist",
+         "wrangler", "pages", "deploy", "dist",
         f"--project-name={CLOUDFLARE_PROJECT_NAME}",
     ]
     logger.info(f"执行部署命令: {' '.join(cmd)}")
