@@ -1,0 +1,57 @@
+name: Auto Run Worker
+
+# 触发条件
+on:
+  schedule:
+    # 定时触发：这里配置为每天每隔 3 小时自动运行一次（你可以根据需要修改）
+    # 分 时 日 月 周（UTC 时间，比北京时间慢 8 小时）
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    # 允许你在 GitHub 页面上手动点击 "Run workflow" 按钮触发
+
+jobs:
+  run-task:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. 检出仓库代码
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. 安装 Node.js 22 (Wrangler 部署必须)
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    # 3. 安装 Wrangler CLI
+    - name: Install Wrangler
+      run: npm install -g wrangler@latest
+
+    # 4. 设置 Python 环境
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # 5. 安装 Python 依赖
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    # 6. 运行你的 Python 脚本
+    - name: Run script
+      env:
+        # 🔗 将 GitHub 仓库中配置的 Secrets 映射为脚本需要的环境变量
+        CA_URL: ${{ secrets.CA_URL }}
+        CA_HEADER_UV6IGUN: ${{ secrets.CA_HEADER_UV6IGUN }}
+        CA_HEADER_AUBNFSHJ: ${{ secrets.CA_HEADER_AUBNFSHJ }}
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
+        D1_DB_NAME: ${{ secrets.D1_DB_NAME }}
+        SHARD_COUNT: ${{ secrets.SHARD_COUNT }}
+        HF_URL_QUEUE: ${{ secrets.HF_URL_QUEUE }}
+      run: |
+        python main.py
