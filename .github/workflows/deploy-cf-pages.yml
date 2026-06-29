@@ -15,7 +15,10 @@ jobs:
       - name: 安装 Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
+
+      - name: 安装 wrangler
+        run: npm install -g wrangler
 
       - name: 安装 Python
         uses: actions/setup-python@v5
