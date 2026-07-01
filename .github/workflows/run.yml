@@ -2,7 +2,6 @@ name: Auto Run Worker
 
 on:
   schedule:
-    # 每 6 小时运行一次（UTC）
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
@@ -13,33 +12,27 @@ jobs:
       contents: write
 
     steps:
-      # 1. 检出仓库代码
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. 安装 Node.js 22
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      # 3. 安装 Wrangler CLI
       - name: Install Wrangler
         run: npm install -g wrangler
 
-      # 4. 设置 Python 环境
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 5. 安装 Python 依赖
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      # 6. 运行你的 Python 脚本
       - name: Run script
         env:
           CA_URL: ${{ secrets.CA_URL }}
@@ -51,8 +44,15 @@ jobs:
           D1_DB_NAME: ${{ secrets.D1_DB_NAME }}
           SHARD_COUNT: ${{ secrets.SHARD_COUNT }}
           HF_URL_QUEUE: ${{ secrets.HF_URL_QUEUE }}
+        run: python main.py
+
+      # ⭐⭐⭐ 新增：获取真实外网 IP 并写入文件 ⭐⭐⭐
+      - name: Get public IP
         run: |
-          python main.py
+          REAL_IP=$(curl -s https://api.ipify.org)
+          echo "Public IP: $REAL_IP"
+          echo "$(date -u '+%Y-%m-%d %H:%M:%S UTC') | $REAL_IP" >> public_ip.txt
+
 
       # 7. 创建 keepalive 文件
       - name: Create keep-alive commit
@@ -60,12 +60,12 @@ jobs:
           echo "Last backup: $(date -u '+%Y-%m-%d %H:%M:%S UTC') | ID: $(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 8)" > keepalive.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add keepalive.md || true
+          git add keepalive.md public_ip.txt || true
 
       # 8. 自动提交
       - name: Commit & Push if changed
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "keepalive"
-          file_pattern: keepalive.md
+          file_pattern: keepalive.md public_ip.txt
           push_options: '--force'
