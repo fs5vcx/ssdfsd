@@ -2,7 +2,7 @@ name: Auto Run Worker
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '12 */6 * * *'
   workflow_dispatch:
 
 jobs:
